@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bluebook — Digital SAT Simulator</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+<style>
+:root{
+  --bb-blue:#1c5fce;
+  --bb-next:#1d4ed8;
+  --ink:#1f2733;
+  --muted:#5b6573;
+  --line:#d9dee5;
+  --bg:#f4f6f9;
+
+  --navy:#0a1733;
+  --navy2:#13245c;
+  --accent:#4f7cff;
+  --gold:#ffc23c;
+  --paper:#f7f9fc;
+
+  --serif:Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg)}
+#root{min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+.katex{font-size:1.02em}
+
+.btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 20px;font-weight:600;font-size:14px;color:var(--ink)}
+.btn:hover{background:#f3f5f8}
+.btn-primary{background:var(--bb-next);border-color:var(--bb-next);color:#fff}
+.btn-primary:hover{background:#1740b8}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.btn-ghost{border:1px solid var(--bb-next);color:var(--bb-next);background:#fff}
+.btn-ghost:hover{background:#eef3ff}
+.muted{color:var(--muted)}
+
+/* ============ LANDING ============ */
+.lp{min-height:100vh;background:var(--paper)}
+.lp-nav{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;
+  padding:20px 6vw;z-index:5;color:#fff}
+.lp-brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:20px;letter-spacing:-.01em}
+.lp-brand .star{color:var(--gold);font-size:22px}
+.lp-nav a{color:#dfe6ff;text-decoration:none;font-weight:600;font-size:14px}
+.lp-nav a:hover{color:#fff}
+
+.hero{position:relative;overflow:hidden;background:
+  radial-gradient(700px 380px at 12% 18%, rgba(79,124,255,.30), transparent 60%),
+  radial-gradient(620px 420px at 92% 8%, rgba(255,194,60,.18), transparent 55%),
+  linear-gradient(160deg,#0a1733 0%,#10204e 55%,#0b1a3c 100%);
+  color:#fff;padding:118px 6vw 96px}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;max-width:1180px;margin:0 auto}
+.eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:800;
+  animation:fadeUp .6s both}
+.hero h1{font-size:clamp(38px,5vw,62px);line-height:1.02;letter-spacing:-.025em;margin:14px 0 0;font-weight:800;
+  animation:fadeUp .6s .06s both}
+.hero h1 .em{background:linear-gradient(90deg,#86b0ff,#ffd874);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{font-size:18px;line-height:1.55;color:#c5d2f0;max-width:520px;margin:20px 0 30px;
+  animation:fadeUp .6s .12s both}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .6s .18s both}
+.cta-lg{background:linear-gradient(90deg,#4f7cff,#3a63e6);color:#fff;border:none;border-radius:12px;
+  padding:15px 28px;font-weight:700;font-size:16px;box-shadow:0 12px 30px rgba(40,80,220,.45)}
+.cta-lg:hover{transform:translateY(-1px);box-shadow:0 16px 38px rgba(40,80,220,.55)}
+.cta-ghost{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.28);
+  border-radius:12px;padding:15px 24px;font-weight:700;font-size:16px}
+.cta-ghost:hover{background:rgba(255,255,255,.13)}
+.hero-stats{display:flex;gap:30px;margin-top:38px;animation:fadeUp .6s .24s both}
+.hero-stats .s b{font-family:var(--serif);font-size:30px;display:block;line-height:1}
+.hero-stats .s span{font-size:12.5px;color:#9fb0d8;letter-spacing:.04em}
+
+/* hero floating mock card */
+.mock-wrap{display:flex;justify-content:center;animation:fadeUp .7s .2s both}
+.mock{position:relative;width:360px;background:#fff;border-radius:18px;color:var(--ink);
+  box-shadow:0 40px 80px rgba(4,12,40,.55);transform:rotate(-3deg);animation:floaty 6s ease-in-out infinite;
+  border:1px solid rgba(255,255,255,.6);overflow:hidden}
+.mock-top{background:var(--bb-blue);color:#fff;font-size:11px;font-weight:700;padding:6px 12px;display:flex;justify-content:space-between}
+.mock-body{padding:16px 18px}
+.mock-qhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px;font-size:12px;font-weight:700}
+.mock-qnum{background:#1f2733;color:#fff;width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+.mock-stem{font-family:var(--serif);font-size:15px;margin-bottom:12px}
+.mock-ch{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:8px;font-family:var(--serif);font-size:14px}
+.mock-ch .b{width:20px;height:20px;border-radius:50%;border:1.5px solid #aab3c0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--sans)}
+.mock-ch.sel{border-color:var(--bb-next);background:#f4f8ff}
+.mock-ch.sel .b{background:var(--bb-next);border-color:var(--bb-next);color:#fff}
+.chip-float{position:absolute;background:#fff;border-radius:12px;padding:10px 14px;box-shadow:0 16px 34px rgba(4,12,40,.30);font-weight:800}
+.chip-score{top:-22px;right:-26px;color:#0b2a66}
+.chip-score b{font-family:var(--serif);font-size:26px;display:block;line-height:1}
+.chip-score span{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.08em}
+.chip-timer{bottom:-18px;left:-24px;color:var(--bb-next);font-size:15px;display:flex;align-items:center;gap:6px}
+
+/* landing content */
+.lp-body{max-width:1100px;margin:0 auto;padding:64px 6vw 90px}
+.lp-h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:0 0 4px}
+.lp-lead{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 22px}
+.type-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.type-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;
+  transition:.16s;cursor:pointer;overflow:hidden}
+.type-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(20,40,90,.13);border-color:#b9c8ef}
+.type-card .bar{position:absolute;left:0;top:0;bottom:0;width:5px}
+.type-card .max{font-family:var(--serif);font-size:32px;font-weight:700;color:#0b2a66}
+.type-card h3{margin:6px 0 4px;font-size:18px}
+.type-card .d{color:var(--muted);font-size:13px;min-height:36px}
+.type-card .go{margin-top:12px;font-weight:700;color:var(--bb-next);font-size:14px}
+
+.tests-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.test-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.test-card .row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.test-card h4{margin:0;font-size:17px}
+.tchip{font-size:11px;font-weight:800;letter-spacing:.04em;border-radius:999px;padding:3px 10px;text-transform:uppercase}
+.tchip.full{background:#eef3ff;color:#1d4ed8}
+.tchip.rw{background:#eafaf0;color:#1c7a3f}
+.tchip.math{background:#fff2e3;color:#b5651d}
+.test-meta{color:var(--muted);font-size:13px;margin:6px 0 14px;display:flex;gap:14px;flex-wrap:wrap}
+.test-actions{display:flex;gap:8px;align-items:center}
+.link-danger{background:none;border:none;color:#c0392b;font-weight:600;font-size:13px;margin-left:auto}
+.empty{background:#fff;border:1px dashed #c3ccd9;border-radius:14px;padding:34px;text-align:center;color:var(--muted)}
+.note{background:#fff8e6;border:1px solid #f3e2a8;border-radius:10px;padding:12px 14px;font-size:13px;color:#6b5a1f;margin-top:18px}
+
+/* ============ CREATE VIEW ============ */
+.create{min-height:100vh;background:var(--paper)}
+.create-bar{background:#fff;border-bottom:1px solid var(--line);padding:16px 6vw;display:flex;align-items:center;gap:14px}
+.back{background:none;border:none;color:var(--muted);font-weight:700;font-size:14px}
+.create-inner{max-width:880px;margin:0 auto;padding:34px 24px 90px}
+.field-label{font-weight:800;font-size:14px;margin:0 0 6px}
+.name-input{width:100%;font-size:22px;font-weight:700;border:none;border-bottom:2px solid var(--line);
+  padding:8px 2px;outline:none;background:transparent}
+.name-input:focus{border-color:var(--bb-next)}
+textarea.paste{width:100%;min-height:280px;border:1px solid var(--line);border-radius:12px;padding:14px;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;resize:vertical;line-height:1.55}
+.parse-bar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.pill-count{background:#eef3ff;color:var(--bb-next);border-radius:999px;padding:4px 12px;font-weight:700;font-size:13px}
+.pill-warn{background:#fdecec;color:#c0392b;border-radius:999px;padding:4px 12px;font-weight:700;font-size:13px}
+.help{font-size:12px;color:var(--muted);line-height:1.55;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px}
+.create-foot{position:sticky;bottom:0;background:linear-gradient(0deg,var(--paper),rgba(247,249,252,.6));
+  padding:16px 0;display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+
+/* AI import */
+.tabs{display:flex;gap:8px;margin:6px 0 18px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 18px;font-weight:700;font-size:14px;color:var(--muted)}
+.tab.on{background:#0a1733;color:#fff;border-color:#0a1733}
+.tab .ai{color:var(--gold)}
+.ai-panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.key-box{background:#f3f7ff;border:1px solid #cfe0ff;border-radius:12px;padding:16px;margin-bottom:14px}
+.key-box input{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:ui-monospace,monospace;font-size:13px;margin-top:8px}
+.row-mini{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+select.sel{padding:8px 10px;border-radius:8px;border:1px solid var(--line);font-size:13px;font-weight:600}
+.drop{border:1.5px dashed #b9c8ef;border-radius:12px;padding:18px;text-align:center;color:var(--muted);font-size:14px;cursor:pointer;background:#fafcff}
+.drop:hover{background:#f1f6ff;border-color:#8fb0ff}
+.err{background:#fdecec;border:1px solid #f3bcbc;color:#a23030;border-radius:10px;padding:12px 14px;font-size:13px;margin-top:12px;white-space:pre-wrap}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid #cdd6e4;border-top-color:var(--bb-next);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-3px;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pv-card{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff}
+.pv-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.pv-card input.t,.pv-card textarea.t{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:var(--sans)}
+.pv-card textarea.t{font-family:var(--serif);min-height:46px;resize:vertical}
+.pv-choice{display:flex;align-items:center;gap:8px;margin:6px 0}
+.pv-choice input.t{font-family:var(--serif)}
+.pv-correct{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.del-mini{background:none;border:none;color:#c0392b;font-weight:700;font-size:13px;margin-left:auto}
+
+/* ============ TEST CHROME ============ */
+.test{display:flex;flex-direction:column;height:100vh;background:#fff;overflow:hidden}
+.topbar{background:var(--bb-blue);color:#fff;height:34px;display:flex;align-items:center;padding:0 12px;font-size:13px;gap:8px;font-weight:600}
+.topbar .star{color:#ffd34d}
+.topbar .win{margin-left:auto;display:flex;gap:16px;opacity:.9}
+.header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:10px 20px 4px}
+.sec-name{font-weight:700;font-size:17px}
+.dir{color:var(--muted);font-size:13px;margin-top:2px}
+.timer-wrap{text-align:center}
+.timer{font-size:22px;font-weight:700}
+.timer.low{color:#c0392b}
+.hide-pill{margin-top:2px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 16px;font-size:12px;font-weight:600;color:var(--muted)}
+.header .right{display:flex;justify-content:flex-end;align-items:center;gap:18px}
+.tool{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--ink);background:none;border:none;gap:2px}
+.tool.active{color:var(--bb-next)}
+.tool .ic{font-size:16px}
+.battery{font-size:11px;color:var(--muted);margin-bottom:2px;text-align:right}
+.dashes{height:7px;background-image:repeating-linear-gradient(90deg,#1c5fce 0 14px,transparent 14px 22px,#f4b400 22px 36px,transparent 36px 44px,#9aa6b2 44px 58px,transparent 58px 66px);opacity:.55;margin-top:4px}
+
+.body{flex:1;display:flex;min-height:0}
+.pane{flex:1;min-width:0;overflow:auto;padding:26px 30px}
+.pane.left{border-right:1px solid var(--line)}
+.passage{font-family:var(--serif);font-size:17px;line-height:1.7;color:#15202b}
+.qhead{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:16px}
+.qnum{background:#1f2733;color:#fff;width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.mark{display:flex;align-items:center;gap:6px;background:none;border:none;font-size:14px;font-weight:600;color:var(--ink)}
+.mark .flag{font-size:15px}
+.elim{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 8px;font-weight:700;font-size:12px;color:var(--muted)}
+.elim.on{background:#1f2733;color:#fff;border-color:#1f2733}
+.stem{font-family:var(--serif);font-size:17px;line-height:1.6;margin-bottom:18px;display:block}
+.choices{display:flex;flex-direction:column;gap:12px}
+.choice{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:11px;padding:13px 14px;font-family:var(--serif);font-size:16px;background:#fff;text-align:left;width:100%}
+.choice:hover{border-color:#9db4e8}
+.choice.sel{border-color:var(--bb-next);box-shadow:0 0 0 1px var(--bb-next) inset;background:#f4f8ff}
+.choice .badge{width:26px;height:26px;border-radius:50%;border:1.5px solid #aab3c0;display:flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto;font-family:var(--sans);font-size:14px}
+.choice.sel .badge{background:var(--bb-next);border-color:var(--bb-next);color:#fff}
+.choice.crossed{opacity:.55}
+.choice.crossed .ctext{text-decoration:line-through}
+.strike{margin-left:auto;border:1px solid var(--line);border-radius:6px;width:24px;height:24px;font-size:11px;font-weight:700;background:#fff;color:var(--muted)}
+.ctext{flex:1}
+
+/* calculator dock (split screen) */
+.calc-dock{width:40%;flex:0 0 40%;border-right:1px solid var(--line);display:flex;flex-direction:column;background:#fff}
+.calc-dock .cbar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);background:#f7f9fc}
+.calc-dock .cbody{flex:1;min-height:0}
+.q-col{width:60%;flex:0 0 60%;overflow:auto;display:flex;justify-content:flex-end;padding:26px 30px}
+.q-col .q-inner{width:100%;max-width:560px}
+
+.footer{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 22px;border-top:1px solid var(--line);position:relative}
+.who{font-weight:700}
+.navbtn{background:#1f2733;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-weight:700;font-size:14px;justify-self:center}
+.foot-right{display:flex;justify-content:flex-end;gap:10px}
+.navpop{position:absolute;left:50%;transform:translateX(-50%);bottom:64px;width:520px;max-width:92vw;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px rgba(15,30,70,.22);padding:18px;z-index:30}
+.navpop h4{margin:0 0 4px;text-align:center}
+.navpop .legend{display:flex;gap:18px;justify-content:center;font-size:12px;color:var(--muted);margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:14px}
+.gcell{position:relative;height:38px;border-radius:8px;border:1.5px dashed #b9c2cf;background:#fff;font-weight:700;color:var(--ink)}
+.gcell.ans{background:var(--bb-next);border-style:solid;border-color:var(--bb-next);color:#fff}
+.gcell.cur{outline:2px solid #1f2733;outline-offset:2px}
+.gcell .gf{position:absolute;top:-7px;right:-4px;font-size:12px}
+.navpop .acts{display:flex;justify-content:center}
+.modal{position:absolute;top:80px;right:20px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(15,30,70,.18);width:220px;z-index:40;overflow:hidden}
+.modal button{display:block;width:100%;text-align:left;border:none;background:#fff;padding:12px 16px;font-size:14px;border-bottom:1px solid #eef1f5}
+.modal button:hover{background:#f3f6fb}
+.overlay{position:fixed;inset:0;background:rgba(15,23,40,.85);display:flex;align-items:center;justify-content:center;z-index:60;color:#fff;text-align:center}
+.overlay .box{max-width:430px;padding:0 20px}
+.overlay h2{font-size:30px;margin:0 0 10px}
+
+/* results */
+.results{min-height:100vh;background:var(--bg)}
+.results-inner{max-width:880px;margin:0 auto;padding:40px 24px 80px}
+.big-score{background:#fff;border:1px solid var(--line);border-radius:18px;padding:30px;text-align:center}
+.big-score .num{font-family:var(--serif);font-size:64px;font-weight:700;color:#0b2a66;line-height:1}
+.subscores{display:flex;gap:16px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.subscore{background:#eef3ff;border-radius:12px;padding:14px 26px;text-align:center}
+.subscore b{font-family:var(--serif);font-size:30px;color:var(--bb-next);display:block}
+.rev-q{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.tag{font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px}
+.tag.ok{background:#e6f6ec;color:#1c7a3f}
+.tag.no{background:#fdecec;color:#c0392b}
+.rev-choice{padding:7px 12px;border-radius:8px;margin:5px 0;font-family:var(--serif)}
+.rev-choice.correct{background:#e6f6ec}
+.rev-choice.wrong{background:#fdecec}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes floaty{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(-3deg) translateY(-10px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+@media(max-width:860px){
+  .hero-grid{grid-template-columns:1fr}.mock-wrap{display:none}
+  .type-cards{grid-template-columns:1fr}.tests-grid{grid-template-columns:1fr}
+  .body{flex-direction:column}.pane.left{border-right:none;border-bottom:1px solid var(--line)}
+  .calc-dock,.q-col{width:100%;flex:1 1 auto}.q-col{justify-content:center}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const {useState,useEffect,useRef} = React;
+
+/* ---------- persistent storage ----------
+   Works in the in-chat artifact sandbox (window.storage) AND in a downloaded
+   file opened in a normal browser (localStorage). Falls back to memory. */
+const mem={};
+const Store={
+  async get(k){
+    try{ if(window.storage){ const r=await window.storage.get(k); return r?JSON.parse(r.value):null; } }catch(e){}
+    try{ const v=localStorage.getItem(k); if(v!=null) return JSON.parse(v); }catch(e){}
+    return mem[k]??null;
+  },
+  async set(k,v){
+    mem[k]=v;
+    try{ if(window.storage){ await window.storage.set(k,JSON.stringify(v)); return; } }catch(e){}
+    try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
+  }
+};
+
+/* ---------- math rendering ---------- */
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function mathHTML(text){
+  if(text==null) return '';
+  return String(text).split(/(\$[^$]*\$)/g).map(p=>{
+    if(p.length>1&&p[0]==='$'&&p[p.length-1]==='$'){
+      try{return window.katex.renderToString(p.slice(1,-1),{throwOnError:false});}catch(e){return esc(p);}
+    }
+    return esc(p).replace(/\n/g,'<br/>');
+  }).join('');
+}
+function MathText({text,className,style}){
+  return <span className={className} style={style} dangerouslySetInnerHTML={{__html:mathHTML(text)}}/>;
+}
+
+/* ---------- parser ---------- */
+function parseQuestions(raw, defaultSubject){
+  const text=(raw||'').replace(/\r/g,'').trim();
+  if(!text) return [];
+  const lines=text.split('\n');
+  const blocks=[]; let cur=null;
+  for(const ln of lines){
+    if(/^\s*\d+[.)]\s/.test(ln)){ if(cur)blocks.push(cur); cur=[ln]; }
+    else if(cur) cur.push(ln);
+    else cur=[ln];
+  }
+  if(cur)blocks.push(cur);
+  const out=[];
+  for(const b of blocks){
+    const q={subject:defaultSubject,passage:'',stem:'',choices:[],correct:-1,explanation:''};
+    let mode='stem';
+    for(const line of b){
+      const m=line.match(/^\s*([A-Da-d])[.)]\s+(.*)$/);
+      if(/^\s*passage\s*:/i.test(line)){ q.passage+=line.replace(/^\s*passage\s*:/i,'').trim()+'\n'; mode='passage'; continue; }
+      if(/^\s*subject\s*:/i.test(line)){ const s=line.split(':')[1].trim().toLowerCase(); q.subject=s.startsWith('m')?'math':'rw'; continue; }
+      if(/^\s*answer\s*:/i.test(line)){ const a=line.split(':')[1].trim().toUpperCase(); q.correct='ABCD'.indexOf(a[0]); continue; }
+      if(/^\s*explanation\s*:/i.test(line)){ q.explanation=line.replace(/^\s*explanation\s*:/i,'').trim(); mode='exp'; continue; }
+      if(m){ q.choices.push(m[2].trim()); mode='choice'; continue; }
+      const stripped=line.replace(/^\s*\d+[.)]\s*/,'');
+      if(mode==='passage') q.passage+=line+'\n';
+      else if(mode==='exp') q.explanation+=' '+line.trim();
+      else if(mode==='choice'&&q.choices.length) q.choices[q.choices.length-1]+=' '+line.trim();
+      else q.stem+=(q.stem?' ':'')+stripped.trim();
+    }
+    q.passage=q.passage.trim(); q.stem=q.stem.trim();
+    if(q.stem&&q.choices.length>=2){ q.id='q_'+Math.random().toString(36).slice(2,9); out.push(q); }
+  }
+  return out;
+}
+
+/* ---------- AI parsing via Gemini (free tier / your key) ---------- */
+const GEMINI_MODELS=['gemini-2.5-flash','gemini-2.5-flash-lite','gemini-3.5-flash'];
+
+// Structured-output schema → Gemini is forced to return valid JSON in this shape.
+const QSCHEMA={
+  type:'ARRAY',
+  items:{
+    type:'OBJECT',
+    properties:{
+      subject:{type:'STRING',enum:['math','rw']},
+      passage:{type:'STRING'},
+      stem:{type:'STRING'},
+      choices:{type:'ARRAY',items:{type:'STRING'}},
+      correct:{type:'INTEGER'},
+      explanation:{type:'STRING'}
+    },
+    required:['subject','stem','choices','correct']
+  }
+};
+
+function normalizeAIQuestions(arr,type){
+  if(!Array.isArray(arr)) return [];
+  return arr.map(r=>{
+    let subject=(r.subject==='math'||r.subject==='rw')?r.subject:'rw';
+    if(type!=='full') subject=type;
+    let choices=Array.isArray(r.choices)?r.choices.map(c=>String(c)).filter(c=>c.trim()):[];
+    let correct=Number.isInteger(r.correct)?r.correct
+      :(typeof r.answer==='string'?'ABCD'.indexOf(r.answer.trim().toUpperCase()[0]):-1);
+    return {
+      id:'q_'+Math.random().toString(36).slice(2,9),
+      subject,
+      passage:r.passage?String(r.passage):'',
+      stem:r.stem?String(r.stem):'',
+      choices,
+      correct:(correct>=0&&correct<choices.length)?correct:0,
+      explanation:r.explanation?String(r.explanation):''
+    };
+  }).filter(q=>q.stem && q.choices.length>=2);
+}
+
+// Recover questions even if the model output was cut off mid-array.
+function salvageJSONArray(s){
+  s=(s||'').replace(/```json/gi,'').replace(/```/g,'').trim();
+  const start=s.indexOf('['); if(start<0) throw new Error('no array');
+  s=s.slice(start);
+  try{ return JSON.parse(s); }catch(e){}
+  const lastObj=s.lastIndexOf('}');
+  if(lastObj>0){ try{ return JSON.parse(s.slice(0,lastObj+1)+']'); }catch(e){} }
+  throw new Error('unparseable');
+}
+
+// Split big documents into segments so the model never has to emit one giant reply.
+function chunkText(text,budget){
+  const paras=text.split(/\n\s*\n/);
+  const chunks=[]; let cur='';
+  for(const p of paras){
+    if(cur && cur.length+p.length+2>budget){ chunks.push(cur); cur=''; }
+    cur += (cur?'\n\n':'')+p;
+    if(cur.length>budget*1.7){ chunks.push(cur); cur=''; }
+  }
+  if(cur.trim()) chunks.push(cur);
+  return chunks.length?chunks:[text];
+}
+
+async function aiParseSegment({text,type,key,model}){
+  const subjectRule = type==='full'
+    ? 'Decide each question\'s subject yourself: "math" for anything quantitative (algebra, geometry, data, functions); "rw" for reading, grammar, and vocabulary.'
+    : `Every question\'s subject is "${type}".`;
+  const prompt =
+`You are an intelligent exam parser. Read the raw, messy text below (it may come from an OCR\'d or badly formatted PDF) and reconstruct every genuine multiple-choice question as clean data.
+
+For each real question:
+- ${subjectRule}
+- Write a clean, grammatical "stem" (the question being asked). FIX spelling, OCR, spacing, and punctuation errors WITHOUT changing the meaning. Make it as clear as possible.
+- Provide exactly 4 cleaned "choices" with NO letter labels (no "A)"/"B."). If the source shows more or fewer, choose or merge to the 4 best options. Fix obvious typos in choices too.
+- Set "correct" to the 0-based index (0,1,2,3) of the correct choice. Use any answer key in the text, even if it appears elsewhere and is matched by question number. If the answer is genuinely not provided, set "correct" to 0 and "explanation" to "answer not provided".
+- "passage": the reading passage or setup text for R&W questions; "" if none.
+- "explanation": one short sentence why the answer is right; "" if unknown.
+- Wrap ALL mathematics in LaTeX between single dollar signs (e.g. $x^2$, $\\frac{3}{4}$, $\\sqrt{49}$). Leave plain English unwrapped.
+
+Ignore everything that is NOT a question: page numbers, running headers/footers, instructions, section titles, logos, and decorative text. Keep questions in their original order.
+
+RAW TEXT:
+"""
+${text}
+"""`;
+
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+  let res;
+  try{
+    res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{role:'user',parts:[{text:prompt}]}],
+        generationConfig:{temperature:0,responseMimeType:'application/json',responseSchema:QSCHEMA,maxOutputTokens:16384}
+      })});
+  }catch(e){
+    throw new Error('NETWORK: The browser could not reach Google. This usually means the in-chat preview\'s sandbox blocked the request \u2014 download the file and open it in a normal browser, or check your connection.');
+  }
+  if(!res.ok){
+    let detail=''; try{detail=(await res.json())?.error?.message||'';}catch(e){}
+    if(res.status===400||res.status===403) throw new Error('KEY: Google rejected the request ('+res.status+'). Your key looks invalid or lacks access \u2014 use one starting with "AIza" from aistudio.google.com. '+detail);
+    if(res.status===404) throw new Error('MODEL: Model "'+model+'" not found for this key. Pick another in the dropdown. '+detail);
+    if(res.status===429) throw new Error('QUOTA: Free-tier rate limit hit (429). Wait a minute or switch to gemini-2.5-flash-lite. '+detail);
+    throw new Error('HTTP '+res.status+': '+detail);
+  }
+  const data=await res.json();
+  const cand=data?.candidates?.[0];
+  let out=cand?.content?.parts?.map(p=>p.text||'').join('')||'';
+  let arr;
+  try{ arr=salvageJSONArray(out); }
+  catch(e){ throw new Error('PARSE: Could not read the AI\'s reply for one segment. Try again, switch model, or use the formatted-paste tab.'); }
+  return normalizeAIQuestions(arr,type);
+}
+
+// Top-level: chunk if large, parse each segment, merge.
+async function aiParse({text,type,key,model,onProgress}){
+  const chunks = text.length>6000 ? chunkText(text,6000) : [text];
+  let all=[];
+  for(let i=0;i<chunks.length;i++){
+    if(onProgress) onProgress(i+1,chunks.length);
+    const qs=await aiParseSegment({text:chunks[i],type,key,model});
+    all=all.concat(qs);
+  }
+  return all;
+}
+
+/* ---------- PDF text extraction (pdf.js, loaded on demand) ---------- */
+let _pdfjsPromise=null;
+function loadPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(_pdfjsPromise) return _pdfjsPromise;
+  _pdfjsPromise=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=()=>{ try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; resolve(window.pdfjsLib);}catch(e){reject(e);} };
+    s.onerror=()=>reject(new Error('Could not load the PDF reader (likely blocked by the preview sandbox). Download the file and open it in a browser, or copy-paste the text instead.'));
+    document.body.appendChild(s);
+  });
+  return _pdfjsPromise;
+}
+async function extractPdfText(file){
+  const pdfjsLib=await loadPdfJs();
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let text='';
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const content=await page.getTextContent();
+    text += content.items.map(i=>i.str).join(' ')+'\n\n';
+  }
+  return text.trim();
+}
+
+/* ---------- timing + modules + scoring ---------- */
+const TIME={rw:32*60,math:35*60};
+function buildModules(questions){
+  const rw=questions.filter(q=>q.subject==='rw');
+  const math=questions.filter(q=>q.subject==='math');
+  const split=a=>{const h=Math.ceil(a.length/2);return [a.slice(0,h),a.slice(h)];};
+  const mods=[];
+  const add=(arr,subject)=>{const [a,b]=split(arr);
+    if(a.length)mods.push({subject,moduleNum:1,time:TIME[subject],questions:a});
+    if(b.length)mods.push({subject,moduleNum:2,time:TIME[subject],questions:b});};
+  add(rw,'rw'); add(math,'math');
+  return mods;
+}
+function scaleSubject(raw,total){
+  if(total<=0) return 200;
+  const pct=raw/total;
+  const s=200+600*Math.pow(pct,0.92);
+  return Math.max(200,Math.min(800,Math.round(s/10)*10));
+}
+
+const flag=(f)=> <span style={{color:f?'#d8a200':'#1f2733'}}>{f?'⚑':'⚐'}</span>;
+
+/* ---------- seed demo test (a saved test, not a shared bank) ---------- */
+const DEMO={ id:'demo', name:'Demo Test — R&W + Math', type:'full', createdAt:Date.now(), questions:[
+  {id:'d1',subject:'rw',
+   passage:"The following text is from Herman Melville's 1854 novel The Lightning-rod Man.\n\nThe stranger still stood in the exact middle of the cottage, where he had first planted himself. His singularity impelled a closer scrutiny. A lean, gloomy figure. Hair dark and lank, mattedly streaked over his brow. His sunken pitfalls of eyes were ringed by indigo halos, and played with an innocuous sort of lightning: the gleam without the bolt. The whole man was dripping.",
+   stem:'Which choice best states the function of the underlined sentence ("His singularity impelled a closer scrutiny") in the overall structure of the text?',
+   choices:["It elaborates on the previous sentence’s description of the character.","It introduces the setting that is described in the sentences that follow.","It establishes a contrast with the description in the previous sentence.","It sets up the character description presented in the sentences that follow."],
+   correct:3, explanation:'The sentence announces that the stranger warrants closer inspection; the following sentences provide that detailed description.'},
+  {id:'d2',subject:'rw',
+   passage:'While honeybees are famous pollinators, recent studies show that wild solitary bees, which do not live in hives, ________ a substantial share of the pollination for many native plants.',
+   stem:'Which choice completes the text so that it conforms to the conventions of Standard English?',
+   choices:['performs','performing','perform','to perform'], correct:2,
+   explanation:'The plural subject "wild solitary bees" requires the plural verb "perform."'},
+  {id:'d3',subject:'math', stem:'If $3x + 7 = 22$, what is the value of $x$?',
+   choices:['$3$','$5$','$7$','$15$'], correct:1, explanation:'$3x = 15$, so $x = 5$.'},
+  {id:'d4',subject:'math', stem:'A line passes through $(2,3)$ and $(6,11)$. What is its slope?',
+   choices:['$2$','$\\tfrac{1}{2}$','$4$','$8$'], correct:0, explanation:'slope $=\\frac{11-3}{6-2}=2$.'},
+  {id:'d5',subject:'math', stem:'If $x^2 - 5x + 6 = 0$ and $x > 2$, what is $x$?',
+   choices:['$1$','$2$','$3$','$6$'], correct:2, explanation:'Factors to $(x-2)(x-3)=0$; with $x>2$, $x=3$.'},
+]};
+
+/* ============================================================
+   COUNT-UP (hero)
+   ============================================================ */
+function CountUp({to,dur=1500}){
+  const [n,setN]=useState(0);
+  useEffect(()=>{
+    const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){setN(to);return;}
+    let raf,start;
+    const step=t=>{ if(!start)start=t; const p=Math.min(1,(t-start)/dur);
+      setN(Math.round(to*(1-Math.pow(1-p,3)))); if(p<1)raf=requestAnimationFrame(step); };
+    raf=requestAnimationFrame(step); return ()=>cancelAnimationFrame(raf);
+  },[to]);
+  return <span>{n}</span>;
+}
+
+/* ============================================================
+   LANDING
+   ============================================================ */
+const TYPES={
+  full:{name:'Full SAT',max:1600,color:'#1d4ed8',d:'Reading & Writing plus Math, two modules each.'},
+  rw:{name:'Reading & Writing',max:800,color:'#1c7a3f',d:'Two adaptive R&W modules with passages.'},
+  math:{name:'Math',max:800,color:'#b5651d',d:'Two Math modules with the Desmos calculator.'},
+};
+function Landing({tests,history,onCreate,onStart,onDelete,onReview}){
+  const lastScore=id=>{ const h=history.filter(x=>x.testId===id); return h.length?h[0].total:null; };
+  const scrollCreate=()=>document.getElementById('create-section').scrollIntoView({behavior:'smooth'});
+  return (
+    <div className="lp">
+      <div className="lp-nav">
+        <div className="lp-brand"><span className="star">★</span> Bluebook</div>
+        <a onClick={()=>document.getElementById('your-tests').scrollIntoView({behavior:'smooth'})}>Your tests</a>
+      </div>
+
+      <section className="hero">
+        <div className="hero-grid">
+          <div>
+            <div className="eyebrow">Digital SAT Simulator</div>
+            <h1>Sit the test<br/>before <span className="em">the test.</span></h1>
+            <p className="sub">Build a real Bluebook-style exam from your own questions, take it under official timing, and track every score over time.</p>
+            <div className="hero-cta">
+              <button className="cta-lg" onClick={scrollCreate}>Create a test</button>
+              <button className="cta-ghost" onClick={()=>document.getElementById('your-tests').scrollIntoView({behavior:'smooth'})}>Your tests →</button>
+            </div>
+            <div className="hero-stats">
+              <div className="s"><b>1600</b><span>POINT SCALE</span></div>
+              <div className="s"><b>32:00</b><span>R&W / MODULE</span></div>
+              <div className="s"><b>35:00</b><span>MATH / MODULE</span></div>
+            </div>
+          </div>
+          <div className="mock-wrap">
+            <div className="mock">
+              <div className="mock-top"><span>★ Bluebook</span><span>31:08</span></div>
+              <div className="mock-body">
+                <div className="mock-qhead"><span className="mock-qnum">2</span> {flag(false)} Mark for Review</div>
+                <div className="mock-stem"><MathText text={'If $3x + 7 = 22$, what is the value of $x$?'}/></div>
+                {['$3$','$5$','$7$','$15$'].map((c,i)=>(
+                  <div key={i} className={'mock-ch'+(i===1?' sel':'')}>
+                    <span className="b">{'ABCD'[i]}</span><MathText text={c}/>
+                  </div>
+                ))}
+              </div>
+              <div className="chip-float chip-score"><b><CountUp to={1600}/></b><span>YOUR GOAL</span></div>
+              <div className="chip-float chip-timer">⏱ Live timing</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="lp-body">
+        <div id="create-section">
+          <div className="lp-h2">Step 1</div>
+          <h2 className="lp-lead">Create a new test</h2>
+          <div className="type-cards">
+            {Object.keys(TYPES).map(k=>{const t=TYPES[k];return (
+              <div className="type-card" key={k} onClick={()=>onCreate(k)}>
+                <div className="bar" style={{background:t.color}}/>
+                <div className="max">{t.max}</div>
+                <h3>{t.name}</h3>
+                <div className="d">{t.d}</div>
+                <div className="go">Name & add questions →</div>
+              </div>
+            );})}
+          </div>
+          <div className="note">Pick a type and you'll be asked to <b>name the test</b> right away, then paste your questions. Each test is saved as its own permanent exam — questions are never mixed into a shared pool.</div>
+        </div>
+
+        <div id="your-tests" style={{marginTop:56}}>
+          <div className="lp-h2">Step 2</div>
+          <h2 className="lp-lead">Your saved tests</h2>
+          {tests.length===0
+            ? <div className="empty">No tests yet. Create one above — the <b>Start</b> button unlocks as soon as a test has parsed questions.</div>
+            : <div className="tests-grid">
+                {tests.map(t=>{const sc=lastScore(t.id);const ready=t.questions.length>0;return (
+                  <div className="test-card" key={t.id}>
+                    <div className="row">
+                      <h4>{t.name}</h4>
+                      <span className={'tchip '+t.type}>{TYPES[t.type].name}</span>
+                    </div>
+                    <div className="test-meta">
+                      <span>{t.questions.length} questions</span>
+                      <span>{t.questions.filter(q=>q.subject==='rw').length} R&W · {t.questions.filter(q=>q.subject==='math').length} Math</span>
+                      {sc!=null && <span>Last score: <b>{sc}</b></span>}
+                    </div>
+                    <div className="test-actions">
+                      <button className="btn btn-primary" disabled={!ready} onClick={()=>onStart(t)}>Start test</button>
+                      {sc!=null && <button className="btn btn-ghost" onClick={()=>onReview(t.id)}>Review</button>}
+                      <button className="link-danger" onClick={()=>onDelete(t.id)}>Delete</button>
+                    </div>
+                  </div>
+                );})}
+              </div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   CREATE VIEW
+   ============================================================ */
+function CreateView({type,onCancel,onSave}){
+  const [name,setName]=useState('');
+  const [tab,setTab]=useState('ai');           // 'ai' | 'manual'
+  const [paste,setPaste]=useState('');
+  const nameRef=useRef(null);
+  const fileRef=useRef(null);
+  useEffect(()=>{ nameRef.current&&nameRef.current.focus(); },[]);
+
+  // AI state
+  const [key,setKey]=useState('');
+  const [keySaved,setKeySaved]=useState(false);
+  const [model,setModel]=useState(GEMINI_MODELS[0]);
+  const [rawText,setRawText]=useState('');
+  const [busy,setBusy]=useState('');           // '', 'pdf', 'ai'
+  const [prog,setProg]=useState('');
+  const [err,setErr]=useState('');
+  const [aiQs,setAiQs]=useState([]);           // editable AI preview
+
+  useEffect(()=>{(async()=>{
+    const k=await Store.get('gemini_key'); const m=await Store.get('gemini_model');
+    if(k){ setKey(k); setKeySaved(true); } if(m) setModel(m);
+  })();},[]);
+
+  const def = type==='math'?'math':'rw';
+  let manualParsed = parseQuestions(paste,def);
+  if(type!=='full') manualParsed = manualParsed.map(q=>({...q,subject:type}));
+
+  const parsed = tab==='ai' ? aiQs : manualParsed;
+  const rwN=parsed.filter(q=>q.subject==='rw').length;
+  const mathN=parsed.filter(q=>q.subject==='math').length;
+  const valid = name.trim().length>0 && parsed.length>0;
+
+  const fmt = type==='math'
+    ? `Subject: math\n1. If $2x = 10$, what is $x$?\nA) 2\nB) 5\nC) 8\nD) 10\nAnswer: B`
+    : type==='rw'
+    ? `Passage: Researchers found that octopuses can solve puzzles...\n1. The passage mainly serves to...\nA) ...\nB) ...\nC) ...\nD) ...\nAnswer: B`
+    : `Subject: rw\nPassage: ...\n1. ...\nA) ...\nB) ...\nC) ...\nD) ...\nAnswer: C\n\nSubject: math\n2. If $x^2 = 49$, what is $x$?\nA) $7$ only\nB) $-7$ only\nC) $7$ or $-7$\nD) $0$\nAnswer: C`;
+
+  async function saveKey(){
+    if(!key.trim()) return;
+    await Store.set('gemini_key',key.trim()); await Store.set('gemini_model',model);
+    setKeySaved(true); setErr('');
+  }
+  async function onPickFile(e){
+    const f=e.target.files&&e.target.files[0]; if(!f) return;
+    setErr(''); setBusy('pdf');
+    try{
+      if(/\.pdf$/i.test(f.name)){ const t=await extractPdfText(f); setRawText(prev=>(prev?prev+'\n\n':'')+t); }
+      else { const t=await f.text(); setRawText(prev=>(prev?prev+'\n\n':'')+t); }
+    }catch(e2){ setErr(e2.message||String(e2)); }
+    setBusy(''); if(fileRef.current) fileRef.current.value='';
+  }
+  async function runAI(){
+    setErr('');
+    if(!key.trim()){ setErr('Enter your Gemini API key first.'); return; }
+    if(!rawText.trim()){ setErr('Paste or upload some question text first.'); return; }
+    setBusy('ai'); setProg('');
+    try{
+      const qs=await aiParse({text:rawText,type,key:key.trim(),model,
+        onProgress:(i,n)=>setProg(n>1?`segment ${i} of ${n}`:'')});
+      if(!qs.length) setErr('The AI returned no usable questions. Check the text, switch model, or use the formatted-paste tab.');
+      setAiQs(qs);
+    }catch(e){ setErr(e.message||String(e)); setAiQs([]); }
+    setBusy(''); setProg('');
+  }
+  // preview editing helpers
+  const upd=(i,patch)=>setAiQs(qs=>qs.map((q,j)=>j===i?{...q,...patch}:q));
+  const updChoice=(i,ci,v)=>setAiQs(qs=>qs.map((q,j)=>j===i?{...q,choices:q.choices.map((c,k)=>k===ci?v:c)}:q));
+  const delQ=(i)=>setAiQs(qs=>qs.filter((_,j)=>j!==i));
+
+  function save(start){
+    if(!valid) return;
+    onSave({id:'t_'+Date.now(),name:name.trim(),type,createdAt:Date.now(),questions:parsed},start);
+  }
+
+  return (
+    <div className="create">
+      <div className="create-bar">
+        <button className="back" onClick={onCancel}>← Back</button>
+        <span className={'tchip '+type}>{TYPES[type].name}</span>
+        <span className="muted" style={{fontSize:14}}>New test</span>
+      </div>
+      <div className="create-inner">
+        <div className="field-label">Test name</div>
+        <input ref={nameRef} className="name-input" placeholder="e.g. Practice Test 4"
+          value={name} onChange={e=>setName(e.target.value)} />
+
+        <div className="field-label" style={{marginTop:28}}>Add questions</div>
+        <div className="tabs">
+          <button className={'tab'+(tab==='ai'?' on':'')} onClick={()=>setTab('ai')}><span className="ai">✦</span> AI parse (any format)</button>
+          <button className={'tab'+(tab==='manual'?' on':'')} onClick={()=>setTab('manual')}>Formatted paste</button>
+        </div>
+
+        {tab==='manual' ? (
+          <>
+            <textarea className="paste" placeholder="Paste all questions here, in the supported format…"
+              value={paste} onChange={e=>setPaste(e.target.value)} />
+            <details style={{marginTop:10}}>
+              <summary className="muted" style={{cursor:'pointer'}}>Show expected format</summary>
+              <div className="help">{fmt}</div>
+            </details>
+          </>
+        ) : (
+          <div className="ai-panel">
+            {!keySaved ? (
+              <div className="key-box">
+                <b>Connect Gemini (free)</b>
+                <div className="muted" style={{fontSize:13,margin:'4px 0'}}>Get a key at <b>aistudio.google.com → Get API key</b>. It starts with <code>AIza…</code> and is saved only in this browser.</div>
+                <input type="password" placeholder="Paste your Gemini API key (AIza…)" value={key} onChange={e=>setKey(e.target.value)} />
+                <div className="row-mini" style={{marginTop:10}}>
+                  <label className="muted" style={{fontSize:13}}>Model</label>
+                  <select className="sel" value={model} onChange={e=>setModel(e.target.value)}>
+                    {GEMINI_MODELS.map(m=><option key={m} value={m}>{m}</option>)}
+                  </select>
+                  <button className="btn btn-primary" onClick={saveKey} disabled={!key.trim()}>Save key</button>
+                </div>
+              </div>
+            ) : (
+              <div className="row-mini" style={{marginBottom:14}}>
+                <span className="pill-count">✓ Gemini connected</span>
+                <select className="sel" value={model} onChange={async e=>{setModel(e.target.value);await Store.set('gemini_model',e.target.value);}}>
+                  {GEMINI_MODELS.map(m=><option key={m} value={m}>{m}</option>)}
+                </select>
+                <button className="btn" onClick={()=>{setKeySaved(false);}}>Change key</button>
+              </div>
+            )}
+
+            <div className="drop" onClick={()=>fileRef.current&&fileRef.current.click()}>
+              {busy==='pdf' ? <span><span className="spin"/>Reading file…</span>
+                : <span>📄 Click to upload a PDF or .txt — or just paste below</span>}
+            </div>
+            <input ref={fileRef} type="file" accept=".pdf,.txt,text/plain" style={{display:'none'}} onChange={onPickFile}/>
+
+            <textarea className="paste" style={{marginTop:12,minHeight:180}}
+              placeholder="Paste messy text from any source here — labels, numbering, and answer keys in any format are fine."
+              value={rawText} onChange={e=>setRawText(e.target.value)} />
+
+            <div className="row-mini" style={{marginTop:12}}>
+              <button className="btn btn-primary" onClick={runAI} disabled={busy==='ai'||!rawText.trim()}>
+                {busy==='ai'? <><span className="spin"/>Parsing{prog?' '+prog:''}…</> : '✦ Parse with AI'}
+              </button>
+              {aiQs.length>0 && <span className="pill-count">{aiQs.length} parsed — edit below if needed</span>}
+            </div>
+
+            {err && <div className="err">{err}</div>}
+
+            {aiQs.map((q,i)=>(
+              <div className="pv-card" key={q.id}>
+                <div className="pv-head">
+                  <span className="qnum" style={{width:24,height:24,fontSize:12}}>{i+1}</span>
+                  {type==='full' && (
+                    <select className="sel" value={q.subject} onChange={e=>upd(i,{subject:e.target.value})}>
+                      <option value="rw">R&W</option><option value="math">Math</option>
+                    </select>
+                  )}
+                  <button className="del-mini" onClick={()=>delQ(i)}>Delete</button>
+                </div>
+                {(q.subject==='rw') && <textarea className="t" style={{marginBottom:8}} placeholder="Passage (optional)"
+                  value={q.passage} onChange={e=>upd(i,{passage:e.target.value})}/>}
+                <textarea className="t" placeholder="Question stem" value={q.stem} onChange={e=>upd(i,{stem:e.target.value})}/>
+                {q.choices.map((c,ci)=>(
+                  <div className="pv-choice" key={ci}>
+                    <span className="badge" style={{width:22,height:22,fontSize:12}}>{'ABCD'[ci]}</span>
+                    <input className="t" value={c} onChange={e=>updChoice(i,ci,e.target.value)}/>
+                    <label className="pv-correct"><input type="radio" name={'c'+q.id} checked={q.correct===ci} onChange={()=>upd(i,{correct:ci})}/> correct</label>
+                  </div>
+                ))}
+                <input className="t" style={{marginTop:8}} placeholder="Explanation (optional)" value={q.explanation} onChange={e=>upd(i,{explanation:e.target.value})}/>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="parse-bar">
+          {parsed.length>0
+            ? <><span className="pill-count">{parsed.length} questions ready</span>
+                {rwN>0 && <span className="pill-count">{rwN} R&W</span>}
+                {mathN>0 && <span className="pill-count">{mathN} Math</span>}</>
+            : <span className="pill-warn">No questions yet</span>}
+        </div>
+
+        <div className="create-foot">
+          <button className="btn" onClick={onCancel}>Cancel</button>
+          <button className="btn" disabled={!valid} style={{opacity:valid?1:.45}} onClick={()=>save(false)}>Save test</button>
+          <button className="btn btn-primary" disabled={!valid} onClick={()=>save(true)}>Save &amp; start now</button>
+        </div>
+        {!valid && <div className="muted" style={{textAlign:'right',fontSize:12}}>
+          {name.trim()? 'Add at least one question to enable Start.' : 'Name the test and add questions to enable Start.'}
+        </div>}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   CALCULATOR (docked, 40% — graceful fallback)
+   ============================================================ */
+function CalcPanel({onClose}){
+  const ref=useRef(null); const [failed,setFailed]=useState(false);
+  useEffect(()=>{
+    let inst;
+    const mount=()=>{ try{ inst=window.Desmos.GraphingCalculator(ref.current,{expressions:true}); }catch(e){ setFailed(true); } };
+    if(window.Desmos){ mount(); }
+    else{
+      const s=document.createElement('script');
+      s.src='https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6';
+      s.onload=()=>{ if(window.Desmos&&ref.current) mount(); else setFailed(true); };
+      s.onerror=()=>setFailed(true);
+      document.body.appendChild(s);
+    }
+    return ()=>{ try{inst&&inst.destroy&&inst.destroy();}catch(e){} };
+  },[]);
+  return (
+    <div className="calc-dock">
+      <div className="cbar"><b style={{fontSize:14}}>Graphing Calculator</b>
+        <button className="btn" style={{padding:'4px 14px'}} onClick={onClose}>Close</button></div>
+      {failed
+        ? <div style={{padding:18,fontSize:13,color:'var(--muted)'}}>The Desmos calculator can't load inside this sandboxed preview. In a deployed build it embeds from <code>desmos.com/api/v1.7/calculator.js</code> with your API key and fills this 40% panel.</div>
+        : <div ref={ref} className="cbody"/>}
+    </div>
+  );
+}
+
+/* ============================================================
+   TEST RUNNER
+   ============================================================ */
+function Test({test,onFinish,onExit}){
+  const modules=useRef(buildModules(test.questions)).current;
+  const [mi,setMi]=useState(0);
+  const [qi,setQi]=useState(0);
+  const [answers,setAnswers]=useState({});
+  const [marked,setMarked]=useState({});
+  const [crossed,setCrossed]=useState({});
+  const [elimMode,setElimMode]=useState(false);
+  const [timeLeft,setTimeLeft]=useState(modules[0]?modules[0].time:0);
+  const [hideTimer,setHideTimer]=useState(false);
+  const [paused,setPaused]=useState(false);
+  const [moreOpen,setMoreOpen]=useState(false);
+  const [navOpen,setNavOpen]=useState(false);
+  const [screen,setScreen]=useState('q');
+  const [annot,setAnnot]=useState(false);
+  const [calcOpen,setCalcOpen]=useState(false);
+  const passRef=useRef(null);
+
+  const mod=modules[mi];
+  const q=mod?mod.questions[qi]:null;
+
+  useEffect(()=>{
+    if(paused||screen!=='q') return;
+    if(timeLeft<=0){ setScreen('review'); return; }
+    const t=setInterval(()=>setTimeLeft(s=>s-1),1000);
+    return ()=>clearInterval(t);
+  },[paused,screen,timeLeft]);
+
+  const mmss=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  const pick=ci=>setAnswers(a=>({...a,[q.id]:ci}));
+  const toggleMark=()=>setMarked(m=>({...m,[q.id]:!m[q.id]}));
+  function toggleCross(ci){
+    setCrossed(c=>{const cur={...(c[q.id]||{})};cur[ci]=!cur[ci];return {...c,[q.id]:cur};});
+    if(answers[q.id]===ci) setAnswers(a=>{const n={...a};delete n[q.id];return n;});
+  }
+  const goReview=()=>{setNavOpen(false);setScreen('review');};
+  const nextQuestion=()=> qi<mod.questions.length-1 ? setQi(qi+1) : goReview();
+  const prevQuestion=()=> qi>0 && setQi(qi-1);
+
+  function nextModule(){
+    if(mi<modules.length-1){
+      const crossing=modules[mi+1].subject!==mod.subject;
+      setMi(mi+1);setQi(0);setTimeLeft(modules[mi+1].time);
+      setElimMode(false);setAnnot(false);setCalcOpen(false);
+      setScreen(crossing?'break':'q');
+    } else finish();
+  }
+  function finish(){
+    const per={}; const detail=[];
+    modules.forEach(m=>m.questions.forEach(qq=>{
+      const chosen=answers[qq.id]; const correct=chosen===qq.correct;
+      per[m.subject]=per[m.subject]||{c:0,t:0}; per[m.subject].t++; if(correct)per[m.subject].c++;
+      detail.push({subject:m.subject,module:m.moduleNum,stem:qq.stem,passage:qq.passage,
+        choices:qq.choices,chosen:chosen==null?null:chosen,correct:qq.correct,explanation:qq.explanation,isRight:correct});
+    }));
+    const rw=per.rw?scaleSubject(per.rw.c,per.rw.t):null;
+    const math=per.math?scaleSubject(per.math.c,per.math.t):null;
+    onFinish({id:'h_'+Date.now(),date:Date.now(),testId:test.id,testName:test.name,type:test.type,
+      rw,math,total:(rw||0)+(math||0),detail});
+  }
+
+  function onPassageMouseUp(){
+    if(!annot) return;
+    const sel=window.getSelection(); if(!sel||sel.isCollapsed) return;
+    try{ const r=sel.getRangeAt(0); const mk=document.createElement('mark'); mk.style.background='#fff3a8';
+      r.surroundContents(mk); sel.removeAllRanges(); }catch(e){}
+  }
+
+  if(!mod) return <div style={{padding:40}}>This test has no questions. <button className="btn" onClick={onExit}>Back</button></div>;
+  const subjName=mod.subject==='rw'?'Reading and Writing':'Math';
+  const low=timeLeft<=300;
+  const isRW=mod.subject==='rw';
+
+  const Topbar=()=>(<div className="topbar"><span className="star">★</span> Bluebook
+    <span className="win">— □ ×</span></div>);
+
+  if(screen==='break') return (
+    <div className="overlay"><div className="box">
+      <h2>Module complete</h2>
+      <p style={{opacity:.85}}>Next: {subjName} — Module {mod.moduleNum}. The timer starts when you continue.</p>
+      <button className="btn btn-primary" style={{marginTop:14}} onClick={()=>setScreen('q')}>Begin module</button>
+    </div></div>
+  );
+
+  if(screen==='review') return (
+    <div className="test">
+      <Topbar/>
+      <div style={{padding:'30px 40px',overflow:'auto'}}>
+        <h2 style={{marginTop:0}}>Review — {subjName}, Module {mod.moduleNum}</h2>
+        <p className="muted">Filled squares are answered; flags are marked for review.</p>
+        <div className="grid" style={{maxWidth:520}}>
+          {mod.questions.map((qq,i)=>(
+            <button key={qq.id} className={'gcell'+(answers[qq.id]!=null?' ans':'')} onClick={()=>{setScreen('q');setQi(i);}}>
+              {i+1}{marked[qq.id]&&<span className="gf">{flag(true)}</span>}
+            </button>
+          ))}
+        </div>
+        <div style={{display:'flex',gap:10,marginTop:24}}>
+          <button className="btn" onClick={()=>setScreen('q')}>Back to questions</button>
+          <button className="btn btn-primary" onClick={nextModule}>{mi<modules.length-1?'Next module':'Finish & score'}</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const QuestionPane=()=>{
+    const cross=crossed[q.id]||{};
+    return (
+      <div>
+        <div className="qhead">
+          <div className="qnum">{qi+1}</div>
+          <button className={'mark'+(marked[q.id]?' active':'')} onClick={toggleMark}>
+            <span className="flag">{flag(marked[q.id])}</span> Mark for Review</button>
+          <button className={'elim'+(elimMode?' on':'')} onClick={()=>setElimMode(e=>!e)} title="Cross out answers">ABC</button>
+        </div>
+        <MathText className="stem" text={q.stem}/>
+        <div className="choices">
+          {q.choices.map((c,ci)=>{
+            const sel=answers[q.id]===ci; const x=cross[ci];
+            return (
+              <div key={ci} className={'choice'+(sel?' sel':'')+(x?' crossed':'')} onClick={()=>{ if(!x)pick(ci); }}>
+                <span className="badge">{'ABCD'[ci]}</span>
+                <MathText className="ctext" text={c}/>
+                {elimMode && <button className="strike" onClick={e=>{e.stopPropagation();toggleCross(ci);}}>{x?'↺':'—'}</button>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="test">
+      <Topbar/>
+      <div className="header">
+        <div>
+          <div className="sec-name">Section {mod.subject==='rw'?'1':'2'}: {subjName}</div>
+          <div className="dir">Directions ▾</div>
+        </div>
+        <div className="timer-wrap">
+          <div className={'timer'+(low&&!hideTimer?' low':'')}>{hideTimer?' ':mmss(timeLeft)}</div>
+          <button className="hide-pill" onClick={()=>setHideTimer(h=>!h)}>{hideTimer?'Show':'Hide'}</button>
+        </div>
+        <div className="right">
+          {mod.subject==='math' && <button className={'tool'+(calcOpen?' active':'')} onClick={()=>setCalcOpen(o=>!o)}>
+            <span className="ic">{'🖩'}</span>Calculator</button>}
+          <button className={'tool'+(annot?' active':'')} onClick={()=>setAnnot(a=>!a)}>
+            <span className="ic">{'✎'}</span>Annotate</button>
+          <div style={{position:'relative'}}>
+            <div className="battery">86% {'🔋'}</div>
+            <button className="tool" onClick={()=>setMoreOpen(o=>!o)}><span className="ic">{'⋮'}</span>More</button>
+            {moreOpen && (
+              <div className="modal">
+                <button onClick={()=>{setPaused(true);setMoreOpen(false);}}>Pause test</button>
+                <button onClick={()=>{setMoreOpen(false);goReview();}}>Go to review page</button>
+                <button onClick={()=>{if(confirm('Exit test? Progress will be lost.'))onExit();}}>Exit test</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="dashes"/>
+
+      <div className="body">
+        {isRW ? (
+          <>
+            <div className="pane left">
+              <div className="passage" ref={passRef} onMouseUp={onPassageMouseUp}
+                dangerouslySetInnerHTML={{__html:mathHTML(q.passage)}}/>
+            </div>
+            <div className="pane"><QuestionPane/></div>
+          </>
+        ) : calcOpen ? (
+          <>
+            <CalcPanel onClose={()=>setCalcOpen(false)}/>
+            <div className="q-col"><div className="q-inner"><QuestionPane/></div></div>
+          </>
+        ) : (
+          <div className="pane" style={{maxWidth:760,margin:'0 auto'}}><QuestionPane/></div>
+        )}
+      </div>
+
+      <div className="footer">
+        <div className="who">{test.name}</div>
+        <button className="navbtn" onClick={()=>setNavOpen(o=>!o)}>
+          Question {qi+1} of {mod.questions.length} {navOpen?'▾':'▴'}</button>
+        <div className="foot-right">
+          <button className="btn" onClick={prevQuestion} disabled={qi===0} style={{opacity:qi===0?.5:1}}>Back</button>
+          <button className="btn btn-primary" onClick={nextQuestion}>{qi<mod.questions.length-1?'Next':'Review'}</button>
+        </div>
+        {navOpen && (
+          <div className="navpop">
+            <h4>{subjName} — Module {mod.moduleNum}</h4>
+            <div className="legend"><span>▢ Unanswered</span><span>■ Answered</span><span>{flag(true)} For review</span></div>
+            <div className="grid">
+              {mod.questions.map((qq,i)=>(
+                <button key={qq.id} className={'gcell'+(answers[qq.id]!=null?' ans':'')+(i===qi?' cur':'')}
+                  onClick={()=>{setQi(i);setNavOpen(false);}}>
+                  {i+1}{marked[qq.id]&&<span className="gf">{flag(true)}</span>}
+                </button>
+              ))}
+            </div>
+            <div className="acts"><button className="btn btn-ghost" onClick={goReview}>Go to Review Page</button></div>
+          </div>
+        )}
+      </div>
+
+      {paused && (
+        <div className="overlay"><div className="box">
+          <h2>Test paused</h2>
+          <p style={{opacity:.85}}>The timer is stopped and the question is hidden. Resume when you're ready.</p>
+          <button className="btn btn-primary" style={{marginTop:14}} onClick={()=>setPaused(false)}>Resume</button>
+        </div></div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   RESULTS / REVIEW
+   ============================================================ */
+function Results({result,onHome}){
+  return (
+    <div className="results"><div className="results-inner">
+      <div className="lp-brand" style={{color:'#0b2a66',marginBottom:18}}><span className="star" style={{color:'var(--gold)'}}>★</span> {result.testName}</div>
+      <div className="big-score">
+        <div className="muted" style={{fontWeight:800,letterSpacing:'.08em'}}>{TYPES[result.type].name.toUpperCase()}</div>
+        <div className="num">{result.total}</div>
+        <div className="muted">{result.type==='full'?'out of 1600':'out of 800'}</div>
+        <div className="subscores">
+          {result.rw!=null && <div className="subscore"><b>{result.rw}</b>Reading & Writing</div>}
+          {result.math!=null && <div className="subscore"><b>{result.math}</b>Math</div>}
+        </div>
+      </div>
+      <div className="lp-h2" style={{marginTop:30}}>Answer review</div>
+      {result.detail.map((d,i)=>(
+        <div className="rev-q" key={i}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+            <b>{d.subject==='rw'?'R&W':'Math'} · Module {d.module} · Q{i+1}</b>
+            <span className={'tag '+(d.isRight?'ok':'no')}>{d.isRight?'Correct':d.chosen==null?'Skipped':'Incorrect'}</span>
+          </div>
+          {d.passage && <div className="muted" style={{fontFamily:'var(--serif)',fontSize:14,marginBottom:6}}
+            dangerouslySetInnerHTML={{__html:mathHTML(d.passage).slice(0,400)}}/>}
+          <MathText style={{fontFamily:'var(--serif)'}} text={d.stem}/>
+          <div style={{marginTop:8}}>
+            {d.choices.map((c,ci)=>{
+              const cls=ci===d.correct?'rev-choice correct':(ci===d.chosen?'rev-choice wrong':'rev-choice');
+              return <div className={cls} key={ci}><b>{'ABCD'[ci]}.</b> <MathText text={c}/>
+                {ci===d.correct && <span className="muted"> ← correct</span>}
+                {ci===d.chosen && ci!==d.correct && <span className="muted"> ← your answer</span>}
+              </div>;
+            })}
+          </div>
+          {d.explanation && <div className="muted" style={{marginTop:8,fontSize:14}}><b>Why:</b> <MathText text={d.explanation}/></div>}
+        </div>
+      ))}
+      <button className="btn btn-primary" style={{marginTop:10}} onClick={onHome}>Back to dashboard</button>
+    </div></div>
+  );
+}
+
+/* ============================================================
+   APP ROOT
+   ============================================================ */
+function App(){
+  const [view,setView]=useState('loading');
+  const [tests,setTests]=useState([]);
+  const [history,setHistory]=useState([]);
+  const [createType,setCreateType]=useState('full');
+  const [activeTest,setActiveTest]=useState(null);
+  const [result,setResult]=useState(null);
+
+  useEffect(()=>{(async()=>{
+    let t=await Store.get('sat_tests');
+    const h=await Store.get('sat_history');
+    if(!t||!t.length){ t=[DEMO]; await Store.set('sat_tests',t); }
+    setTests(t); if(h)setHistory(h);
+    setView('home');
+  })();},[]);
+
+  async function saveTest(test,start){
+    const t=[test,...tests]; setTests(t); await Store.set('sat_tests',t);
+    if(start){ setActiveTest(test); setView('test'); } else setView('home');
+  }
+  async function deleteTest(id){
+    if(!confirm('Delete this test permanently?')) return;
+    const t=tests.filter(x=>x.id!==id); setTests(t); await Store.set('sat_tests',t);
+  }
+  async function finish(r){
+    const h=[r,...history]; setHistory(h); await Store.set('sat_history',h);
+    setResult(r); setView('results');
+  }
+  function reviewTest(testId){
+    const r=history.find(x=>x.testId===testId);
+    if(r){ setResult(r); setView('results'); }
+  }
+
+  if(view==='loading') return <div style={{padding:40,color:'#5b6573'}}>Loading…</div>;
+  if(view==='home') return <Landing tests={tests} history={history}
+      onCreate={(k)=>{setCreateType(k);setView('create');}}
+      onStart={(t)=>{setActiveTest(t);setView('test');}}
+      onDelete={deleteTest} onReview={reviewTest}/>;
+  if(view==='create') return <CreateView type={createType} onCancel={()=>setView('home')} onSave={saveTest}/>;
+  if(view==='test') return <Test test={activeTest} onFinish={finish} onExit={()=>setView('home')}/>;
+  if(view==='results') return <Results result={result} onHome={()=>setView('home')}/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
